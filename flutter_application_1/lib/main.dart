@@ -10,6 +10,7 @@ class MyApp extends StatelessWidget{
     
     return new MaterialApp(
       home: new RandomWords(),
+      theme: new ThemeData(primaryColor: Colors.pink),
     );
   }
 }
@@ -24,17 +25,55 @@ class RandomWordsState extends State<RandomWords>{
 
   final _suggestions = <WordPair>[];
   final _biggerFont = const TextStyle(fontSize:18.0);
+  final _saved = new Set<WordPair>();
   
-  Widget _buildRow(WordPair pair){
-      return new ListTile(
-        title: new Text(
-          pair.asPascalCase,
-          style: _biggerFont,
-        ),
+  void _pressedFavarite(){
+      Navigator.of(context).push(
+        new MaterialPageRoute(
+          builder:(context){
+            final tiles = _saved.map(
+                (pair){
+                  return new ListTile(
+                    title: new Text(
+                      pair.asUpperCase,
+                      style:_biggerFont
+                    )
+                  );
+                }
+            );
+            print(tiles.toString());
+            final divided = ListTile.divideTiles(
+              context: context,
+              tiles: tiles
+            ).toList();
+
+            return new Scaffold(
+              appBar: new AppBar(
+                title: new Text('Saved Favorites')
+              ),
+              body: new ListView(children:divided)
+            );
+          }
+        )
       );
   }
 
-  _buildSuggestions(){
+  @override
+  Widget build(BuildContext context) {
+    // final wordPair = new WordPair.random();
+    // return new Text(wordPair.asUpperCase);
+    return new Scaffold(
+      appBar:new AppBar(
+        title:new Text('挑选名字'),
+        actions: [
+          new IconButton(icon: new Icon(Icons.list), onPressed: _pressedFavarite)
+        ],
+      ),
+      body: _buildSuggestions() 
+    );
+  }
+
+  Widget _buildSuggestions(){
     return new ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemBuilder: (context,i){
@@ -48,15 +87,28 @@ class RandomWordsState extends State<RandomWords>{
     );
   }
   
-  @override
-  Widget build(BuildContext context) {
-    // final wordPair = new WordPair.random();
-    // return new Text(wordPair.asUpperCase);
-    return new Scaffold(
-      appBar:new AppBar(
-        title:new Text('挑选名字')
+  Widget _buildRow(WordPair pair){
+
+    final alreadSaved = _saved.contains(pair);
+    return new ListTile(
+      title: new Text(
+        pair.asPascalCase,
+        style: _biggerFont,
       ),
-      body: _buildSuggestions() 
+      trailing: new Icon(
+        alreadSaved ? Icons.favorite : Icons.favorite_border,
+        color: alreadSaved ? Colors.red : null,
+      ),
+      onTap: (){
+        setState(() {
+          if(alreadSaved){
+            _saved.remove(pair);
+          }else{
+            _saved.add(pair);
+          }
+        });
+      },
     );
   }
+
 }
